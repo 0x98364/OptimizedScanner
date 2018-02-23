@@ -24,7 +24,4 @@ This is an example for scan the nmap 1000 top ports TCP and UDP with masscan rat
 
 See also the list of [contributors](https://github.com/0x98364/OptimizedScanner/) who participated in this project.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
