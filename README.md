@@ -6,7 +6,8 @@ Bash tool designed to optimize and order the results of a big network scan.
 
 ### Prerequisites
 
-This tool need nmap and masscan instaled on the system
+This tool need nmap and masscan instaled on the system.
+Responder tool its optional
 
 ### Run
 
