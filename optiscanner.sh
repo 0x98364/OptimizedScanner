@@ -28,6 +28,7 @@ then
   exit 1
 fi
 
+varRunFingerLocation="/usr/share/responder/tools/RunFinger.py"
 range=$(echo $1 | cut -d "/" -f1)
 port_range=$2
 timestamp=$(date +%H:%M:%S)
@@ -36,21 +37,21 @@ folder_name=$range$timestamp
 mkdir $folder_name
 
 #First, discover alive hosts in networkrange
-#printf "${RED}[*]${NC} Discovering alive hosts...\n"
-#nmap=$(nmap -sP $1 -oG $folder_name/alive_hosts)
+printf "${RED}[*]${NC} Discovering alive hosts...\n"
+nmap=$(nmap -sP $1 -oG $folder_name/alive_hosts)
 
 #Then, grep alive_hosts and create hosts_list
-#`cat $folder_name/alive_hosts | cut -d " " -f2 | sed '/^Nmap/ d' > $folder_name/hosts_list`
+`cat $folder_name/alive_hosts | cut -d " " -f2 | sed '/^Nmap/ d' > $folder_name/hosts_list`
 
 #nmap -sT --top-ports 2000 -v -oG -
 #masscan for detect common open ports
 printf "${RED}[*]${NC} Scanning $port_range common TCP ports in range $1\n"
 printf "\n"
 
-port_list=$(nmap -sT -oG - -v --top-ports $port_range 0.0.0.0 | awk -F'[);]' '/Ports/{print $2}')
+port_list=$(nmap -sT -oG - -v --top-ports $port_range | awk -F'[);]' '/Ports/{print $2}')
 #echo "masscan -iL $folder_name/hosts_list -p$port_list -oG $folder_name/mass_result"
-#masscan=$(masscan -iL $folder_name/hosts_list -p$port_list -oG $folder_name/mass_result --rate $3)
-masscan=$(masscan $1 -p$port_list -oG $folder_name/mass_result --rate $3)
+masscan=$(masscan -iL $folder_name/hosts_list -p$port_list -oG $folder_name/mass_result --rate $3)
+#masscan=$(masscan -iL alcance_paco.txt -p$port_list -oG $folder_name/mass_result --rate $3)
 
 #Split hosts for other tools
 cat $folder_name/mass_result | cut -d " " -f2,4 | grep "^[0-99999]" | grep " 445/open" | cut -d " " -f1 > $folder_name/smb_hosts
@@ -64,6 +65,9 @@ cat $folder_name/mass_result | cut -d " " -f2,4 | grep "^[0-99999]" | grep " 543
 cat $folder_name/mass_result | cut -d " " -f2,4 | grep "^[0-99999]" | grep " 389/open" | cut -d " " -f1 > $folder_name/ldap_hosts
 cat $folder_name/mass_result | cut -d " " -f2,4 | grep "^[0-99999]" | grep " 25/open" | cut -d " " -f1 > $folder_name/smtp_hosts
 cat $folder_name/mass_result | cut -d " " -f2,4 | grep "^[0-99999]" | grep " 53/open" | cut -d " " -f1 > $folder_name/dns_hosts
+
+#Delete empty files generated (no hosts on there)
+find $folder_name -size 0 -print0 |xargs -0 rm
 
 #Create file for only common open ports
 cat $folder_name/mass_result | cut -d " " -f4 | cut -d "/" -f1 | grep "^[0-99999]" | sort -u -n > $folder_name/open_ports
@@ -99,34 +103,53 @@ echo -n "Do you want to scan UDP ports in this network? This may take a while (y
 read answer
 if echo "$answer" | grep -iq "^y" ;then
 
-udp_port_list=$(nmap -sU -oG - -v --top-ports 1000 0.0.0.0 | awk -F'[);]' '/Ports/{print $4}' | sed -e 's/,/,U:/g')
+  udp_port_list=$(nmap -sU -oG - -v --top-ports 1000 | awk -F'[);]' '/Ports/{print $4}' | sed -e 's/,/,U:/g')
 
-masscan_udp=$(masscan -iL $folder_name/hosts_list -p$udp_port_list -oG $folder_name/mass_result_udp --rate $3)
+  masscan_udp=$(masscan -iL $folder_name/hosts_list -p$udp_port_list -oG $folder_name/mass_result_udp --rate $3)
 
-cat $folder_name/mass_result_udp | cut -d " " -f4 | cut -d "/" -f1 | grep "^[0-99999]" | sort -u -n > $folder_name/open_udp_ports
+  cat $folder_name/mass_result_udp | cut -d " " -f4 | cut -d "/" -f1 | grep "^[0-99999]" | sort -u -n > $folder_name/open_udp_ports
 
-#Format open ports file to nmap Format
-open_udp_ports=$(cat $folder_name/open_udp_ports | tr "\n" ",")
+  #Format open ports file to nmap Format
+  open_udp_ports=$(cat $folder_name/open_udp_ports | tr "\n" ",")
 
-printf "${RED}[*]${NC} Scanning common UDP services banners on range $1"
-printf "\n"
-nmap=$(nmap -sU -sV -iL $folder_name/hosts_list -p$open_udp_ports -oA $folder_name/nmap_udp_results -oG $folder_name/nmap_udp_results_grepable -v -n -Pn)
+  printf "${RED}[*]${NC} Scanning common UDP services banners on range $1"
+  printf "\n"
+  nmap=$(nmap -sU -sV -iL $folder_name/hosts_list -p$open_udp_ports -oA $folder_name/nmap_udp_results -oG $folder_name/nmap_udp_results_grepable -v -n -Pn)
 
-printf "${RED}[*]${NC} Optimized UDP Scan COMPLETED on $1\n"
-printf "${RED}[*]${NC} All the results saved to folder $folder_name\n"
+  printf "${RED}[*]${NC} Optimized UDP Scan COMPLETED on $1\n"
+  printf "${RED}[*]${NC} All the results saved to folder $folder_name\n"
 
-printf "==================UDP RESULTS===================\n"
-hosts_list_count=$(cat $folder_name/hosts_list | wc -l)
-printf "Alive Hosts -> $hosts_list_count \n"
-cat $folder_name/hosts_list
+  printf "==================UDP RESULTS===================\n"
+  hosts_list_count=$(cat $folder_name/hosts_list | wc -l)
+  printf "Alive Hosts -> $hosts_list_count \n"
+  cat $folder_name/hosts_list
 
-printf "\n"
+  printf "\n"
 
-open_ports_count=$(cat $folder_name/open_udp_ports | wc -l)
-printf "Total Open Ports -> $open_ports_count \n"
-cat $folder_name/open_udp_ports
-#printf $cat_ports
-printf "============================================\n"
+  open_ports_count=$(cat $folder_name/open_udp_ports | wc -l)
+  printf "Total Open Ports -> $open_ports_count \n"
+  cat $folder_name/open_udp_ports
+  #printf $cat_ports
+  printf "============================================\n"
+fi
+echo -n "Do you want to execute SMB checks (Sign, NULL and EternalBlue)? (Needs Responder installed)(y/n)"
+read answer
+if echo "$answer" | grep -iq "^y" ;then
+  python /usr/share/responder/tools/RunFinger.py -i $1 -g  | awk -F, '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $6 "\t" $7}' "$varScanResults" | tr -d [\' | tr -d ] > $folder_name/smb_checks
+  printf "==================SMB CHECKS RESULT===================\n"
+  printf "\n"
+  cat $folder_name/smb_checks
+
+  printf "\n"
+  varSigningDisabled=$(grep Signing:False "$folder_name/smb_checks" | wc -l)
+  varSessionNULL=$(grep "Null Session: True" "$folder_name/smb_checks" | wc -l)
+  varEternal=$(grep "MS17-010: True" "$folder_name/smb_checks" | wc -l)
+
+  printf "Hosts sign disabled: $varSigningDisabled\n"
+  printf "Hosts null session: $varSessionNULL\n"
+  printf "Hosts MS17-010: $varEternal\n"
+  printf "\n"
+  printf "=====================================================\n"
 else
-    exit;
+  exit;
 fi
