@@ -48,10 +48,9 @@ nmap=$(nmap -sP $1 -oG $folder_name/alive_hosts)
 printf "${RED}[*]${NC} Scanning $port_range common TCP ports in range $1\n"
 printf "\n"
 
-port_list=$(nmap -sT -oG - -v --top-ports $port_range | awk -F'[);]' '/Ports/{print $2}')
+port_list=$(nmap -sT -oG - -v --top-ports $port_range 0.0.0.0 | awk -F'[);]' '/Ports/{print $2}')
 #echo "masscan -iL $folder_name/hosts_list -p$port_list -oG $folder_name/mass_result"
 masscan=$(masscan -iL $folder_name/hosts_list -p$port_list -oG $folder_name/mass_result --rate $3)
-#masscan=$(masscan -iL alcance_paco.txt -p$port_list -oG $folder_name/mass_result --rate $3)
 
 #Split hosts for other tools
 cat $folder_name/mass_result | cut -d " " -f2,4 | grep "^[0-99999]" | grep " 445/open" | cut -d " " -f1 > $folder_name/smb_hosts
