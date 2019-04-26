@@ -1,12 +1,12 @@
 
 # OptimizedScanner
 
-Bash tool designed to optimize and order the results of a big network scan.
+Bash tool designed to optimize and order the results of a network scan.
 
 
 ### Prerequisites
 
-This tool need nmap and masscan instaled on the system
+This tool needs nmap and masscan instaled on the system, responder tool its optional for SMB tests.
 
 ### Run
 
@@ -21,7 +21,3 @@ This is an example for scan the nmap 1000 top ports TCP and UDP with masscan rat
 * **Matias Moreno** - *Initial work* - [0x98364](https://github.com/0x98364)
 
 * **Belane** - *Thanks for giving me the idea* - [Belane](https://github.com/belane)
-
-See also the list of [contributors](https://github.com/0x98364/OptimizedScanner/) who participated in this project.
-
-

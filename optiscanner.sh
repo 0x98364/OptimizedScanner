@@ -1,6 +1,9 @@
 #!/bin/bash
 
+
 RED='\033[0;31m'
+GREEN='\033[0;32m'
+LGREEN='\033[1;32m'
 NC='\033[0m'
 
 cat << "EOF"
@@ -17,10 +20,9 @@ cat << "EOF"
  ___) | (_| (_| | | | | | | |  __/ |
 |____/ \___\__,_|_| |_|_| |_|\___|_|
 
-By Matias Moreno (@mmorenodev)
+Matias Moreno (@mmorenodev)
 
 EOF
-
 
 if [ $# -lt 3 ]
 then
@@ -85,7 +87,9 @@ nmap=$(nmap -sS -sV -O -iL $folder_name/hosts_list -p$open_ports -oA $folder_nam
 printf "${RED}[*]${NC} Optimized TCP Scan COMPLETED on $1\n"
 printf "${RED}[*]${NC} All the results saved to folder $folder_name\n"
 
-printf "==================TCP RESULTS===================\n"
+printf "\n"
+printf "\n"
+printf "${GREEN}==================TCP RESULTS===================${NC}\n"
 hosts_list_count=$(cat $folder_name/hosts_list | wc -l)
 printf "Alive Hosts -> $hosts_list_count \n"
 cat $folder_name/hosts_list
@@ -96,9 +100,11 @@ open_ports_count=$(cat $folder_name/open_ports | wc -l)
 printf "Total Open Ports -> $open_ports_count \n"
 cat $folder_name/open_ports
 #printf $cat_ports
-printf "============================================\n"
+printf "${GREEN}============================================${NC}\n"
 
-echo -n "Do you want to scan UDP ports in this network? This may take a while (y/n)"
+printf "\n"
+printf "\n"
+echo -n "Do you want to scan UDP ports (top 1000) in this network? This may take a while (y/n)"
 read answer
 if echo "$answer" | grep -iq "^y" ;then
 
@@ -116,9 +122,11 @@ if echo "$answer" | grep -iq "^y" ;then
   nmap=$(nmap -sU -sV -iL $folder_name/hosts_list -p$open_udp_ports -oA $folder_name/nmap_udp_results -oG $folder_name/nmap_udp_results_grepable -v -n -Pn)
 
   printf "${RED}[*]${NC} Optimized UDP Scan COMPLETED on $1\n"
-  printf "${RED}[*]${NC} All the results saved to folder $folder_name\n"
+  printf "${RED}[*]${NC} All the results saved to folder $folder_name\n\n"
 
-  printf "==================UDP RESULTS===================\n"
+  printf "\n"
+  printf "\n"
+  printf "${GREEN}==================UDP RESULTS===================${NC}\n"
   hosts_list_count=$(cat $folder_name/hosts_list | wc -l)
   printf "Alive Hosts -> $hosts_list_count \n"
   cat $folder_name/hosts_list
@@ -129,13 +137,19 @@ if echo "$answer" | grep -iq "^y" ;then
   printf "Total Open Ports -> $open_ports_count \n"
   cat $folder_name/open_udp_ports
   #printf $cat_ports
-  printf "============================================\n"
+  printf "${GREEN}============================================${NC}\n"
+  printf "\n"
+  printf "\n"
 fi
+
 echo -n "Do you want to execute SMB checks (Sign, NULL and EternalBlue)? (Needs Responder installed)(y/n)"
 read answer
 if echo "$answer" | grep -iq "^y" ;then
   python /usr/share/responder/tools/RunFinger.py -i $1 -g  | awk -F, '{print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $6 "\t" $7}' "$varScanResults" | tr -d [\' | tr -d ] > $folder_name/smb_checks
-  printf "==================SMB CHECKS RESULT===================\n"
+
+  printf "\n"
+  printf "\n"
+  printf "${GREEN}==================SMB CHECKS RESULT===================${NC}\n"
   printf "\n"
   cat $folder_name/smb_checks
 
@@ -148,7 +162,7 @@ if echo "$answer" | grep -iq "^y" ;then
   printf "Hosts null session: $varSessionNULL\n"
   printf "Hosts MS17-010: $varEternal\n"
   printf "\n"
-  printf "=====================================================\n"
+  printf "${GREEN}=====================================================${NC}\n"
 else
   exit;
 fi
