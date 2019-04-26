@@ -6,7 +6,8 @@ Bash tool designed to optimize and order the results of a network scan.
 
 ### Prerequisites
 
-This tool needs nmap and masscan instaled on the system, responder tool its optional for SMB tests.
+This tool need nmap and masscan instaled on the system.
+Responder tool its optional
 
 ### Run
 
